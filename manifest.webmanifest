@@ -1,0 +1,15 @@
+{
+  "name": "Taalspel · Dutch & French words",
+  "short_name": "Taalspel",
+  "description": "Learn and test Dutch and French vocabulary against English, A1 to C1.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f3ee",
+  "theme_color": "#e4570f",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
