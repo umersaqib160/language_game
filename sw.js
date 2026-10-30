@@ -1,6 +1,6 @@
 // Offline support: serve from cache, refresh the cache in the background.
 // Bump VERSION when files are added or removed.
-const VERSION = 'taalspel-v2';
+const VERSION = 'taalspel-v3';
 const FILES = [
   './',
   'index.html',

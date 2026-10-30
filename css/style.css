@@ -152,6 +152,7 @@ main {
 .hero-number span { font-size: 1rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
 .hero-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 0.9rem; }
 .hero-msg { margin: 0; color: var(--muted); }
+.hero-msg.small { margin-top: 8px; }
 
 .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
 .dot.learning { background: var(--learning); }
@@ -163,8 +164,8 @@ main {
 .cta-title { font-weight: 700; font-size: 1.1rem; margin: 2px 0; }
 .arrow { font-size: 1.5rem; color: var(--accent); }
 
-.placement-done { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.placement-line { font-size: 1.05rem; margin-top: 2px; }
+.hero-source { margin: -4px 0 10px; }
+.hero-source a { color: var(--accent); text-decoration: underline; }
 
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .action {

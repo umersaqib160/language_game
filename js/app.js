@@ -384,15 +384,15 @@ function renderHome() {
     </div>`;
   }).join('');
 
+  // With a level test result, the headline is the test's estimate; practice
+  // only confirms words one by one, so its count starts far lower.
+  const headline = pl
+    ? `<div class="hero-number">≈${pl.estimate.toLocaleString()}<span> / ${s.total.toLocaleString()} words · ${pl.level}</span></div>
+      <div class="hero-source muted small">Level test, ${fmtDate(pl.date)} · <a href="#/test">see result</a>${pl.v === TEST_VERSION ? '' : ' · <b>the test has been made fairer, retake it for an up-to-date score</b>'}</div>`
+    : `<div class="hero-number">${s.known.toLocaleString()}<span> / ${s.total.toLocaleString()} words known</span></div>`;
+
   const placement = pl
-    ? `<div class="card placement-done">
-        <div>
-          <div class="eyebrow">Level test · ${fmtDate(pl.date)}</div>
-          <div class="placement-line"><b>${pl.level}</b> · about <b>${pl.estimate.toLocaleString()}</b> words</div>
-          ${pl.v === TEST_VERSION ? '' : '<div class="muted small">The test has been made fairer. Retake it for an up-to-date score.</div>'}
-        </div>
-        <a href="#/test" class="btn ghost small">Retake</a>
-      </div>`
+    ? ''
     : `<a href="#/test" class="card cta-test">
         <div>
           <div class="eyebrow">Start here</div>
@@ -405,8 +405,9 @@ function renderHome() {
   view().innerHTML = `
     <section class="card hero">
       <div class="eyebrow">${LANGS[lang()].name} ↔ English</div>
-      <div class="hero-number">${s.known.toLocaleString()}<span> / ${s.total.toLocaleString()} words known</span></div>
+      ${headline}
       <div class="hero-meta">
+        ${pl ? `<span><i class="dot known"></i>${s.known} confirmed in practice</span>` : ''}
         <span><i class="dot learning"></i>${s.learning} learning</span>
         <span><i class="dot due"></i>${s.due} due for review</span>
         <span>🔥 ${streak} day${streak === 1 ? '' : 's'}</span>
@@ -691,8 +692,12 @@ const test = { phase: 'intro', levelIdx: 0, q: 0, questions: [], results: {}, bu
 function renderTest() {
   if (test.phase === 'question') return renderTestQuestion();
   if (test.phase === 'done') return renderTestResult();
+  // A finished test stays on screen, per language, until you retake it.
+  if (Store.data.placement[lang()]) {
+    test.lang = lang();
+    return renderTestResult();
+  }
 
-  const pl = Store.data.placement[lang()];
   view().innerHTML = `
     <div class="page-head">
       <h1>Level test</h1>
@@ -706,7 +711,6 @@ function renderTest() {
         <li>The test stops when a level gets too hard, so it takes 3–5 minutes.</li>
         <li>Words you get right count as known. Words you miss go straight into your Match practice.</li>
       </ul>
-      ${pl ? `<p class="muted">Last result: <b>${pl.level}</b>, about ${pl.estimate.toLocaleString()} words (${fmtDate(pl.date)})${pl.v === TEST_VERSION ? '' : ', scored with the old test'}.</p>` : ''}
       <button type="button" class="btn primary block" data-action="start-test">Start the test</button>
     </div>
   `;
@@ -858,7 +862,7 @@ function renderTestResult() {
       <div class="eyebrow">Estimated vocabulary</div>
       <div class="hero-number">≈${pl.estimate.toLocaleString()}<span> of ${WordBank.words.length.toLocaleString()} words</span></div>
       <p class="hero-msg">${msg}</p>
-      <p class="hero-msg small">Words that look like English weren't asked, so guessing from English doesn't inflate this score.</p>
+      <p class="hero-msg small">Tested ${fmtDate(pl.date)}${pl.v === TEST_VERSION ? '' : ' with the old test, so retake it for a fairer score'}. Words that look like English weren't asked, so guessing from English doesn't inflate this score.</p>
     </section>
     <section class="card">${rows}</section>
     <div class="btn-row">
