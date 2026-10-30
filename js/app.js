@@ -389,6 +389,7 @@ function renderHome() {
         <div>
           <div class="eyebrow">Level test · ${fmtDate(pl.date)}</div>
           <div class="placement-line"><b>${pl.level}</b> · about <b>${pl.estimate.toLocaleString()}</b> words</div>
+          ${pl.v === TEST_VERSION ? '' : '<div class="muted small">The test has been made fairer. Retake it for an up-to-date score.</div>'}
         </div>
         <a href="#/test" class="btn ghost small">Retake</a>
       </div>`
@@ -675,12 +676,16 @@ function finishMemory() {
 
 /* ------------------------------------------------------------------ *
  * Level test (adaptive placement)
- * 8 words per level, multiple choice. Keeps climbing while you get at
+ * 10 words per level, multiple choice. Keeps climbing while you get at
  * least half right, then estimates your vocabulary from the scores.
+ * Only words you can't guess from English are asked: French shares far
+ * more look-alikes with English (la négociation, la majorité) than Dutch
+ * does, which otherwise inflates the French score.
  * ------------------------------------------------------------------ */
 
-const TEST_PER_LEVEL = 8;
-const TEST_PASS = 4;
+const TEST_PER_LEVEL = 10;
+const TEST_PASS = 5;
+const TEST_VERSION = 2;
 const test = { phase: 'intro', levelIdx: 0, q: 0, questions: [], results: {}, busy: false, lang: null };
 
 function renderTest() {
@@ -697,10 +702,11 @@ function renderTest() {
       <ul class="intro-list">
         <li><b>${TEST_PER_LEVEL} words per level</b>, starting at A1 and climbing to C1.</li>
         <li>Pick the English meaning. <b>Don't guess:</b> tap “I don't know”. Guesses make the estimate less accurate.</li>
+        <li>Words that look like English (<i>${lang() === 'fr' ? 'la solution, le progrès' : 'de familie, het water'}</i>) are left out because you could guess them, so Dutch and French scores are comparable.</li>
         <li>The test stops when a level gets too hard, so it takes 3–5 minutes.</li>
         <li>Words you get right count as known. Words you miss go straight into your Match practice.</li>
       </ul>
-      ${pl ? `<p class="muted">Last result: <b>${pl.level}</b>, about ${pl.estimate.toLocaleString()} words (${fmtDate(pl.date)}).</p>` : ''}
+      ${pl ? `<p class="muted">Last result: <b>${pl.level}</b>, about ${pl.estimate.toLocaleString()} words (${fmtDate(pl.date)})${pl.v === TEST_VERSION ? '' : ', scored with the old test'}.</p>` : ''}
       <button type="button" class="btn primary block" data-action="start-test">Start the test</button>
     </div>
   `;
@@ -717,7 +723,7 @@ function buildTestLevel() {
   const pool = WordBank.inLevel(L);
   const isVerb = (w) => w.en.startsWith('to ');
   const pick = picker(test.lang, TEST_PER_LEVEL);
-  shuffle(pool).forEach(pick.add);
+  shuffle(WordBank.testable(L, test.lang)).forEach(pick.add);
 
   test.questions = pick.chosen.map((w) => {
     // Distractors of the same kind (verb vs. not) so the answer can't be spotted by shape.
@@ -813,6 +819,7 @@ function finishTest() {
     else climbing = false;
   }
   Store.data.placement[test.lang] = {
+    v: TEST_VERSION,
     date: Date.now(),
     estimate,
     level: level || 'Pre-A1',
@@ -824,7 +831,8 @@ function finishTest() {
 }
 
 function renderTestResult() {
-  const pl = Store.data.placement[test.lang || lang()];
+  const l = test.lang || lang();
+  const pl = Store.data.placement[l];
   if (!pl) {
     test.phase = 'intro';
     return renderTest();
@@ -845,11 +853,12 @@ function renderTestResult() {
     : `Solid through <b>${pl.level}</b> (${LEVEL_NAMES[pl.level]}). Match cards will pick up where your gaps start.`;
 
   view().innerHTML = `
-    <div class="page-head"><h1>Your result</h1><p class="muted">${LANGS[test.lang || lang()].name} → English</p></div>
+    <div class="page-head"><h1>Your result</h1><p class="muted">${LANGS[l].name} → English</p></div>
     <section class="card hero">
       <div class="eyebrow">Estimated vocabulary</div>
       <div class="hero-number">≈${pl.estimate.toLocaleString()}<span> of ${WordBank.words.length.toLocaleString()} words</span></div>
       <p class="hero-msg">${msg}</p>
+      <p class="hero-msg small">Words that look like English weren't asked, so guessing from English doesn't inflate this score.</p>
     </section>
     <section class="card">${rows}</section>
     <div class="btn-row">
